@@ -49,14 +49,14 @@ request
     var k = 0;
     console.log('Сформировали массив');
 
-    var session = {"controller":"cache","action":"get","params":{"names":oasisArr},"session":"9996a9e26c484fde56e0"};
+    var session = {"controller":"cache","action":"get","params":{"names":oasisArr},"session":"a41d4f5c181e7e244250"};
 
     request
     .post({
       headers: {
         'Content-Type' : 'application/json'
       },
-      url: 'http://ks2-ru.travian.com/api/?c=cache&a=get&t1452017888439',
+      url: 'http://ks2-ru.travian.com/api/?c=cache&a=get&t1452121701146',
       body: JSON.stringify(session)
     },function(error, response, body){
       //console.log(response);
