@@ -1,0 +1,55 @@
+extends layout
+
+mixin animal(animals)
+  td
+    each animal, index in animals
+      case Math.round(index)
+        when 1
+          p= 'Крыса: ' + animal
+        when 2
+          p= 'Паук: ' + animal
+        when 3
+          p= 'Змея: ' + animal
+        when 4
+          p= 'Летучая мышь: ' + animal
+        when 5
+          p= 'Кабан: ' + animal
+        when 6
+          p= 'Волк: ' + animal
+        when 7
+          p= 'Медведь: ' + animal
+        when 8
+          p= 'Крокодил: ' + animal
+        when 9
+          p= 'Тигр: ' + animal
+        when 10
+          p= 'Слон: ' + animal
+        default
+          p= 'Зверей нету'
+
+
+mixin row(items)
+  tr
+    each item, index in items
+      if index === 'animal'
+        +animal(item)
+      else if index === 'counterAnimalType' || index === 'avgAllDpsInfantry' || index === 'avgAllDpsMounted'
+
+      else
+        td= item
+
+//      avgMaxDps: 'average Max DPS for each cage', - доделать подсчёт на кол-во эффективных клеток
+
+mixin table(tableData)
+  table(class='table')
+    +row({x: 'x', y: 'y', animals: 'animals', avgAllDps: 'average All DPS for each cage'})
+    each row, index in tableData
+      if row.oasis != 0
+        +row(row)
+
+
+
+block content
+  h1= title
+  h3= fromGame
+  +table(JSON.parse(map))
