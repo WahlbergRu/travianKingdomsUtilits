@@ -15,11 +15,14 @@ var http = require('http');
 var _ = require('underscore');
 //var rp = require('request-promise');
 
+var time = 't1454459771864';
+var token = '5131940741715718eda2';
+var serverDomain = 'ks3-ru';
 
 request
 .get({
   headers: {'content-type' : 'application/x-www-form-urlencoded'},
-  url:     'http://ks2-ru.travian.com/api/external.php?action=requestApiKey&email=allin.nikita@yandex.ru&siteName=borsch&siteUrl=http://borsch-label.com&public=true'
+  url:     'http://'+serverDomain+'.travian.com/api/external.php?action=requestApiKey&email=allin.nikita@yandex.ru&siteName=borsch&siteUrl=http://borsch-label.com&public=true'
 }, function(error, response, body){
 
   apiKey = JSON.parse(body);
@@ -28,7 +31,7 @@ request
   request
   .get({
     headers: {'content-type' : 'application/x-www-form-urlencoded'},
-    url:     'http://ks2-ru.travian.com/api/external.php?action=getMapData&privateApiKey='+apiKey.response.privateApiKey
+    url:     'http://'+serverDomain+'.travian.com/api/external.php?action=getMapData&privateApiKey='+apiKey.response.privateApiKey
   }, function(error, response, body) {
     var toJson = JSON.parse(body);
     apiData.players = JSON.stringify(toJson.response.players);
@@ -49,14 +52,14 @@ request
     var k = 0;
     console.log('Сформировали массив');
 
-    var session = {"controller":"cache","action":"get","params":{"names":oasisArr},"session":"a41d4f5c181e7e244250"};
+    var session = {"controller":"cache","action":"get","params":{"names":oasisArr},"session":token};
 
     request
     .post({
       headers: {
         'Content-Type' : 'application/json'
       },
-      url: 'http://ks2-ru.travian.com/api/?c=cache&a=get&t1452121701146',
+      url: 'http://'+serverDomain+'.travian.com/api/?c=cache&a=get&'+time,
       body: JSON.stringify(session)
     },function(error, response, body){
       //console.log(response);
@@ -64,16 +67,16 @@ request
 
       var map = [];
       var defenseTable = [
-          {Infantry: 25, Mounted: 20},
-          {Infantry: 35, Mounted: 40},
-          {Infantry: 40, Mounted: 60},
-          {Infantry: 66, Mounted: 55},
-          {Infantry: 70, Mounted: 33},
-          {Infantry: 80, Mounted: 70},
-          {Infantry: 140, Mounted: 200},
-          {Infantry: 380, Mounted: 240},
-          {Infantry: 170, Mounted: 250},
-          {Infantry: 440, Mounted: 520}
+        {Infantry: 25, Mounted: 20},
+        {Infantry: 35, Mounted: 40},
+        {Infantry: 40, Mounted: 60},
+        {Infantry: 66, Mounted: 55},
+        {Infantry: 70, Mounted: 33},
+        {Infantry: 80, Mounted: 70},
+        {Infantry: 140, Mounted: 200},
+        {Infantry: 380, Mounted: 240},
+        {Infantry: 170, Mounted: 250},
+        {Infantry: 440, Mounted: 520}
       ];
       var l=0;
 
