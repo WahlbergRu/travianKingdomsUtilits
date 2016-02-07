@@ -15,9 +15,9 @@ var http = require('http');
 var _ = require('underscore');
 //var rp = require('request-promise');
 
-var time = 't1454572447376';
-var token = 'a0beeabed1d253d97fed';
-var serverDomain = 'ks2-ru';
+var time = 't1454840717604';
+var token = 'db552ba3c9c0c180151b';
+var serverDomain = 'ks3-ru';
 
 
 function getAnimals(){
