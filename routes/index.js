@@ -15,8 +15,8 @@ var http = require('http');
 var _ = require('underscore');
 //var rp = require('request-promise');
 
-var time = 't1454840717604';
-var token = 'db552ba3c9c0c180151b';
+var time = 't1455169469012';
+var token = '4ad70063bf961d95efe4';
 var serverDomain = 'ks3-ru';
 
 

@@ -13,8 +13,8 @@ var apiKey = {};
 var request = require('request');
 var http = require('http');
 
-var time = 't1454459771864';
-var token = 'c6ef3e87d2f89d4dbd57';
+var time = 't1455140772991';
+var token = '301b725781f976393b78';
 var serverDomain = 'ks2-ru';
 
 var troops = {
@@ -22,12 +22,12 @@ var troops = {
   "action":"send",
   "params":{
     "catapultTargets": [99],
-    "destVillageId":"537247789",
+    "destVillageId":"537247788",
     "villageId":537346086,
     "movementType":3,
     "redeployHero":false,
     "units":{
-      "1":300,
+      "1":340,
       "2":0,
       "3":0,
       "4":0,
@@ -56,7 +56,7 @@ var attackRequest = function(){
 };
 
 
-for (var i = 0; i<13; i++){
+for (var i = 0; i<27; i++){
   attackRequest();
 }
 
