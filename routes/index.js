@@ -15,9 +15,9 @@ var http = require('http');
 var _ = require('underscore');
 //var rp = require('request-promise');
 
-var time = 't1455169469012';
-var token = '4ad70063bf961d95efe4';
-var serverDomain = 'ks3-ru';
+var time = 't1455774459001';
+var token = '7aaa53e5b3946dcd67ac';
+var serverDomain = 'ks2-ru';
 
 
 function getAnimals(){
@@ -29,6 +29,7 @@ function getAnimals(){
 
       apiKey = JSON.parse(body);
       console.log('Получили токен');
+      //console.log(apiKey);
 
       request
         .get({
@@ -112,6 +113,14 @@ function getAnimals(){
 
                     avgAllDpsInfantry=(avgAllDpsInfantry/troopsCounter).toFixed(1);
                     avgAllDpsMounted =(avgAllDpsMounted /troopsCounter).toFixed(1);
+
+                    if (avgAllDpsInfantry.length<5){
+                      avgAllDpsInfantry = '0'+avgAllDpsInfantry
+                    }
+
+                    if (avgAllDpsMounted.length<5){
+                      avgAllDpsMounted = '0'+avgAllDpsMounted
+                    }
 
                     if (troopsCounter===0){
                       break;
