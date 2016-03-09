@@ -52,7 +52,7 @@ var listPayload = {
       "listIds": [2487],
       "villageId": 536166362
     },
-    "session": "6c70c6f94bc20edaee46"
+    "session": "681e7f6a3a59a197fbff"
   },
   WahlbergRu3_start: {
     "controller": "troops",
@@ -61,7 +61,7 @@ var listPayload = {
       "listIds": [383],
       "villageId": 535936992
     },
-    "session": "6c70c6f94bc20edaee46"
+    "session": "681e7f6a3a59a197fbff"
   },
   RinRu2: {
     "controller": "troops",
@@ -70,7 +70,7 @@ var listPayload = {
       "listIds": [3980],
       "villageId": 538230833
     },
-    "session": "921e4e3f0abc47f4e30d"
+    "session": "d91f7c6ef37f5c08cac9"
   }
 };
 
@@ -275,9 +275,68 @@ var fixedTimeGenerator = function (seconds) {
       });
   };
 
+
+function autoFarmFinder(){
+  request
+    .get({
+      headers: {'content-type' : 'application/x-www-form-urlencoded'},
+      url:     'http://'+serverDomain+'.travian.com/api/external.php?action=requestApiKey&email=allin.nikita@yandex.ru&siteName=borsch&siteUrl=http://borsch-label.com&public=true'
+    }, function(error, response, body){
+
+      apiKey = JSON.parse(body);
+      console.log('Получили токен');
+
+      request
+        .get({
+          headers: {'content-type' : 'application/x-www-form-urlencoded'},
+          url:     'http://'+serverDomain+'.travian.com/api/external.php?action=getMapData&privateApiKey='+apiKey.response.privateApiKey
+        }, function(error, response, body) {
+
+          var jsonBody = JSON.parse(body);
+          var players = _.pluck(jsonBody.response.players, 'playerId');
+
+          for (var i = 0; i < players.length; i++) {
+            players[i] = 'Player:'+players[i];
+          }
+
+          var payload = {
+            controller: "cache",
+            action: "get",
+            params: {names: players},
+            session: "546c413eb453c50d0ccc"
+          };
+
+          console.log('Сфоримировали массив игроков');
+
+          request
+            .post({
+              headers: {'content-type' : 'application/x-www-form-urlencoded'},
+              url:     'http://'+serverDomain+'.travian.com/api/?c=cache&a=get&'+timeForGame,
+              body:    JSON.stringify(payload)
+            }, function(error, response, body) {
+              var allVillages = JSON.parse(body);
+              var allGreyVillages = [];
+              allVillages.cache.forEach(function(item, i, arr){
+                if (item.data.active == 0){
+                  allGreyVillages.push(item);
+                }
+              });
+
+              console.log(allGreyVillages.length);
+              console.log(allVillages.cache.length);
+            });
+          //console.log(toJson.response.alliances);
+          //console.log(JSON.stringify(toJson.response.gameworld));
+        }
+      )
+    }
+  )
+}
+//autoFarmFinder();
+
 autoFarmList(3600, 600, listPayload.WahlbergRu3_15ka, 'ks3-ru', true);
 autoFarmList(3600, 600, listPayload.WahlbergRu3_start, 'ks3-ru', true);
-autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', false);
+autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
 
 
 //getAnimals();
