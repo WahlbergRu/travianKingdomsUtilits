@@ -13,155 +13,278 @@ var apiKey = {};
 var request = require('request');
 var http = require('http');
 var _ = require('underscore');
-//var rp = require('request-promise');
 
-var time = 't1455774459001';
-var token = '7aaa53e5b3946dcd67ac';
-var serverDomain = 'ks2-ru';
+var timeForGame = 't' + Date.now();
+var token = '89d2a7ada5501b855b12';
+var serverDomain = 'ks3-ru';
 
+var troops = {
+  "controller": "troops",
+  "action": "send",
+  "params": {
+    "catapultTargets": [99],
+    "destVillageId": "537247789",
+    "villageId": 537346086,
+    "movementType": 3,
+    "redeployHero": false,
+    "units": {
+      "1": 340,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 10,
+      "9": 0,
+      "10": 0,
+      "11": 0
+    },
+    "spyMission": "resources"
+  },
+  "session": token
+};
+var listPayload = {
+  WahlbergRu3_15ka: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [2487],
+      "villageId": 536166362
+    },
+    "session": "6c70c6f94bc20edaee46"
+  },
+  WahlbergRu3_start: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [383],
+      "villageId": 535936992
+    },
+    "session": "6c70c6f94bc20edaee46"
+  },
+  RinRu2: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [3980],
+      "villageId": 538230833
+    },
+    "session": "921e4e3f0abc47f4e30d"
+  }
+};
 
-function getAnimals(){
-  request
-    .get({
-      headers: {'content-type' : 'application/x-www-form-urlencoded'},
-      url:     'http://'+serverDomain+'.travian.com/api/external.php?action=requestApiKey&email=allin.nikita@yandex.ru&siteName=borsch&siteUrl=http://borsch-label.com&public=true'
-    }, function(error, response, body){
+var fixedTimeGenerator = function (seconds) {
+    //Точное кол-во seconds секунд
+    return parseInt(1000 * seconds);
+  },
+  getRandomInt = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+  randomTimeGenerator = function (seconds) {
+    //Рандом число в пределах seconds секунд
+    return parseInt(getRandomInt(-1000, 1000) * seconds);
+  },
+  //fixedTime - фиксированное время
+  //randomTime - разброс
+  autoFarmList = function (fixedTime, randomTime, listPayload, serverDomain, init) {
 
-      apiKey = JSON.parse(body);
-      console.log('Получили токен');
-      //console.log(apiKey);
-
+    var startFramListRaid = function () {
       request
-        .get({
-          headers: {'content-type' : 'application/x-www-form-urlencoded'},
-          url:     'http://'+serverDomain+'.travian.com/api/external.php?action=getMapData&privateApiKey='+apiKey.response.privateApiKey
-        }, function(error, response, body) {
-          var toJson = JSON.parse(body);
-          apiData.players = JSON.stringify(toJson.response.players);
-          apiData.alliances = JSON.stringify(toJson.response.alliances);
-          apiData.gameworld = JSON.stringify(toJson.response.gameworld);
+        .post({
+          headers: {'content-type': 'application/x-www-form-urlencoded'},
+          url: 'http://' + serverDomain + '.travian.com/api/?c=troops&a=send&' + timeForGame,
+          body: JSON.stringify(listPayload)
+        }, function (error, response, body) {
+          console.info('Фарм лист пошёл! ' + listPayload.session);
+          //console.info(body);
+        })
+    };
 
-          var oasisArr = [];
-          var oasisObj = JSON.parse(JSON.stringify(toJson.response.map.cells));
-          var j = 0;
-          for (var i = 0; i < oasisObj.length; i++) {
-            if (oasisObj[i].oasis != 0) {
-              oasisArr[j] = 'MapDetails:'+oasisObj[i].id;
-              j++;
-            }
-          }
+    var RecallFunction = function () {
+      now = new Date();
+      var rand = fixedTimeGenerator(fixedTime) + randomTimeGenerator(randomTime);
+      console.log('Время выхода ' + now.toString());
+      var tempTime = now.valueOf() + rand;
+      var dateNext = new Date(tempTime);
+      console.log('Следующее время запуска ' + dateNext.toString());
+      //console.log(now+rand);
 
-          var oasisAnimal = [];
-          var k = 0;
-          console.log('Сформировали массив');
+      if (init) {
+        startFramListRaid();
+      } else {
+        console.info('Инциализации нету');
+      }
 
-          var session = {"controller":"cache","action":"get","params":{"names":oasisArr},"session":token};
+      init = true;
 
-          request
-            .post({
-              headers: {
-                'Content-Type' : 'application/json'
-              },
-              url: 'http://'+serverDomain+'.travian.com/api/?c=cache&a=get&'+time,
-              body: JSON.stringify(session)
-            },function(error, response, body){
-              //console.log(response);
-              var jsonBody = JSON.parse(body);
+      now = 't' + now;
+      setTimeout(RecallFunction, rand);
+    };
 
-              var map = [];
-              var defenseTable = [
-                {Infantry: 25, Mounted: 20},
-                {Infantry: 35, Mounted: 40},
-                {Infantry: 40, Mounted: 60},
-                {Infantry: 66, Mounted: 55},
-                {Infantry: 70, Mounted: 33},
-                {Infantry: 80, Mounted: 70},
-                {Infantry: 140, Mounted: 200},
-                {Infantry: 380, Mounted: 240},
-                {Infantry: 170, Mounted: 250},
-                {Infantry: 440, Mounted: 520}
-              ];
-              var l=0;
+    RecallFunction();
+  },
+  attackRequest = function () {
+    request
+      .post({
+        headers: {'content-type': 'application/x-www-form-urlencoded'},
+        url: 'http://' + serverDomain + '.travian.com/api/?c=troops&a=send&' + timeForGame,
+        body: JSON.stringify(troops)
+      }, function (error, response, body) {
+        console.log(response);
+      });
+  },
+  getAnimals = function () {
+    request
+      .get({
+        headers: {'content-type': 'application/x-www-form-urlencoded'},
+        url: 'http://' + serverDomain + '.travian.com/api/external.php?action=requestApiKey&email=allin.nikita@yandex.ru&siteName=borsch&siteUrl=http://borsch-label.com&public=true'
+      }, function (error, response, body) {
 
+        apiKey = JSON.parse(body);
+        console.log('Получили токен');
+        //console.log(apiKey);
 
-              for (var m=0; m < jsonBody.cache.length; m++){
-                for (var k=0; k < toJson.response.map.cells.length; k++){
-                  if (toJson.response.map.cells[k].id == jsonBody.cache[m].data.troops.villageId){
+        request
+          .get({
+            headers: {'content-type': 'application/x-www-form-urlencoded'},
+            url: 'http://' + serverDomain + '.travian.com/api/external.php?action=getMapData&privateApiKey=' + apiKey.response.privateApiKey
+          }, function (error, response, body) {
+            var toJson = JSON.parse(body);
+            apiData.players = JSON.stringify(toJson.response.players);
+            apiData.alliances = JSON.stringify(toJson.response.alliances);
+            apiData.gameworld = JSON.stringify(toJson.response.gameworld);
 
-                    var avgMaxDpsInfantry = 0;
-                    var avgAllDpsInfantry = 0;
-                    var avgMaxDpsMounted = 0;
-                    var avgAllDpsMounted = 0;
-                    var troopsCounter = 0;
-                    var minTroopsCounter = 1000000;
-                    var toIntUnits = 0;
-                    var counterAnimalType = 0;
+            function oasis() {
 
-                    for (var counterUnits in jsonBody.cache[m].data.troops.units){
-                      if (jsonBody.cache[m].data.troops.units.hasOwnProperty(counterUnits)) {
-                        toIntUnits = parseInt(jsonBody.cache[m].data.troops.units[counterUnits],10);
-                        if (toIntUnits!=0 &&
-                          minTroopsCounter>toIntUnits){
-                          minTroopsCounter = toIntUnits;
-                        }
-                        if(toIntUnits){counterAnimalType++}
-                        troopsCounter     += toIntUnits;
-                        avgAllDpsInfantry += jsonBody.cache[m].data.troops.units[counterUnits] * defenseTable[counterUnits-1].Infantry;
-                        avgAllDpsMounted  += jsonBody.cache[m].data.troops.units[counterUnits] * defenseTable[counterUnits-1].Mounted;
-                      }
-                    }
-
-                    avgAllDpsInfantry=(avgAllDpsInfantry/troopsCounter).toFixed(1);
-                    avgAllDpsMounted =(avgAllDpsMounted /troopsCounter).toFixed(1);
-
-                    if (avgAllDpsInfantry.length<5){
-                      avgAllDpsInfantry = '0'+avgAllDpsInfantry
-                    }
-
-                    if (avgAllDpsMounted.length<5){
-                      avgAllDpsMounted = '0'+avgAllDpsMounted
-                    }
-
-                    if (troopsCounter===0){
-                      break;
-                    }
-
-                    map[l]={
-                      x: toJson.response.map.cells[k].x,
-                      y: toJson.response.map.cells[k].y,
-                      animal: jsonBody.cache[m].data.troops.units,
-                      counterAnimalType: counterAnimalType,
-                      avgAllDps: avgAllDpsInfantry+'/'+avgAllDpsMounted,
-                      avgAllDpsInfantry: avgAllDpsInfantry,
-                      avgAllDpsMounted: avgAllDpsMounted
-                    };
-
-                    l++;
-                    break;
-                  }
+              var oasisArr = [];
+              var oasisObj = JSON.parse(JSON.stringify(toJson.response.map.cells));
+              var j = 0;
+              for (var i = 0; i < oasisObj.length; i++) {
+                if (oasisObj[i].oasis != 0) {
+                  oasisArr[j] = 'MapDetails:' + oasisObj[i].id;
+                  j++;
                 }
               }
 
-              map = _.sortBy(map, 'avgAllDpsInfantry').reverse();
+              var oasisAnimal = [];
+              var k = 0;
+              console.log('Сформировали массив');
+
+              var session = {"controller": "cache", "action": "get", "params": {"names": oasisArr}, "session": token};
+
+              request
+              .post({
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  url: 'http://' + serverDomain + '.travian.com/api/?c=cache&a=get&' + timeForGame,
+                  body: JSON.stringify(session)
+              }, function (error, response, body) {
+                console.log(response);
+                var jsonBody = JSON.parse(body);
+
+                var map = [];
+                var defenseTable = [
+                  {Infantry: 25, Mounted: 20},
+                  {Infantry: 35, Mounted: 40},
+                  {Infantry: 40, Mounted: 60},
+                  {Infantry: 66, Mounted: 55},
+                  {Infantry: 70, Mounted: 33},
+                  {Infantry: 80, Mounted: 70},
+                  {Infantry: 140, Mounted: 200},
+                  {Infantry: 380, Mounted: 240},
+                  {Infantry: 170, Mounted: 250},
+                  {Infantry: 440, Mounted: 520}
+                ];
+                var l = 0;
 
 
-              apiData.map = JSON.stringify(map);
-              //console.log(apiData.map);
-              //console.log(jsonBody.cache);
-              //console.log(toJson.response.map.cells);
-              console.log('Создали объект');
+                for (var m = 0; m < jsonBody.cache.length; m++) {
+                  for (var k = 0; k < toJson.response.map.cells.length; k++) {
+                    if (toJson.response.map.cells[k].id == jsonBody.cache[m].data.troops.villageId) {
 
-            });
-        });
-    });
+                      var avgMaxDpsInfantry = 0;
+                      var avgAllDpsInfantry = 0;
+                      var avgMaxDpsMounted = 0;
+                      var avgAllDpsMounted = 0;
+                      var troopsCounter = 0;
+                      var minTroopsCounter = 1000000;
+                      var toIntUnits = 0;
+                      var counterAnimalType = 0;
 
-}
+                      for (var counterUnits in jsonBody.cache[m].data.troops.units) {
+                        if (jsonBody.cache[m].data.troops.units.hasOwnProperty(counterUnits)) {
+                          toIntUnits = parseInt(jsonBody.cache[m].data.troops.units[counterUnits], 10);
+                          if (toIntUnits != 0 &&
+                            minTroopsCounter > toIntUnits) {
+                            minTroopsCounter = toIntUnits;
+                          }
+                          if (toIntUnits) {
+                            counterAnimalType++
+                          }
+                          troopsCounter += toIntUnits;
+                          avgAllDpsInfantry += jsonBody.cache[m].data.troops.units[counterUnits] * defenseTable[counterUnits - 1].Infantry;
+                          avgAllDpsMounted += jsonBody.cache[m].data.troops.units[counterUnits] * defenseTable[counterUnits - 1].Mounted;
+                        }
+                      }
 
-getAnimals();
+                      avgAllDpsInfantry = (avgAllDpsInfantry / troopsCounter).toFixed(1);
+                      avgAllDpsMounted = (avgAllDpsMounted / troopsCounter).toFixed(1);
+
+                      if (avgAllDpsInfantry.length < 5) {
+                        avgAllDpsInfantry = '0' + avgAllDpsInfantry
+                      }
+
+                      if (avgAllDpsMounted.length < 5) {
+                        avgAllDpsMounted = '0' + avgAllDpsMounted
+                      }
+
+                      if (troopsCounter === 0) {
+                        break;
+                      }
+
+                      map[l] = {
+                        x: toJson.response.map.cells[k].x,
+                        y: toJson.response.map.cells[k].y,
+                        animal: jsonBody.cache[m].data.troops.units,
+                        counterAnimalType: counterAnimalType,
+                        avgAllDps: avgAllDpsInfantry + '/' + avgAllDpsMounted,
+                        avgAllDpsInfantry: avgAllDpsInfantry,
+                        avgAllDpsMounted: avgAllDpsMounted
+                      };
+
+                      l++;
+                      break;
+                    }
+                  }
+                }
+
+                map = _.sortBy(map, 'avgAllDpsInfantry').reverse();
+
+
+                apiData.map = JSON.stringify(map);
+                //console.log(apiData.map);
+                //console.log(jsonBody.cache);
+                //console.log(toJson.response.map.cells);
+                console.log('Создали объект');
+
+              });
+            }
+          });
+      });
+  };
+
+autoFarmList(3600, 600, listPayload.WahlbergRu3_15ka, 'ks3-ru', true);
+autoFarmList(3600, 600, listPayload.WahlbergRu3_start, 'ks3-ru', true);
+autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', false);
+
+
+//getAnimals();
 
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 
   res.render('index', {
     title: 'Animal search',
