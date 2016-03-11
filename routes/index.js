@@ -52,7 +52,7 @@ var listPayload = {
       "listIds": [2487],
       "villageId": 536166362
     },
-    "session": "22a9a41f14db48bd1e79"
+    "session": "681e7f6a3a59a197fbff"
   },
   WahlbergRu3_start: {
     "controller": "troops",
@@ -61,7 +61,7 @@ var listPayload = {
       "listIds": [383],
       "villageId": 535936992
     },
-    "session": "22a9a41f14db48bd1e79"
+    "session": "681e7f6a3a59a197fbff"
   },
   RinRu2: {
     "controller": "troops",
@@ -70,7 +70,25 @@ var listPayload = {
       "listIds": [3980],
       "villageId": 538230833
     },
-    "session": "453dcc11acb6c1263707"
+    "session": "16847d7bd64735e7d7c7"
+  },
+  FirelanRu2_15ka: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [4099],
+      "villageId": 538165296
+    },
+    "session": "f7a363ff96fe8e876af4"
+  },
+  FirelanRu2: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [4099],
+      "villageId": 537870367
+    },
+    "session": "f7a363ff96fe8e876af4"
   }
 };
 
@@ -337,6 +355,8 @@ function autoFarmFinder(){
 autoFarmList(3600, 600, listPayload.WahlbergRu3_15ka, 'ks3-ru', true);
 autoFarmList(3600, 600, listPayload.WahlbergRu3_start, 'ks3-ru', true);
 autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
+autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
+autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', true);
 
 
 //getAnimals();
