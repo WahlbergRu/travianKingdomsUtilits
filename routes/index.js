@@ -52,7 +52,7 @@ var listPayload = {
       "listIds": [2487],
       "villageId": 536166362
     },
-    "session": "681e7f6a3a59a197fbff"
+    "session": "22a9a41f14db48bd1e79"
   },
   WahlbergRu3_start: {
     "controller": "troops",
@@ -61,7 +61,7 @@ var listPayload = {
       "listIds": [383],
       "villageId": 535936992
     },
-    "session": "681e7f6a3a59a197fbff"
+    "session": "22a9a41f14db48bd1e79"
   },
   RinRu2: {
     "controller": "troops",
@@ -70,7 +70,7 @@ var listPayload = {
       "listIds": [3980],
       "villageId": 538230833
     },
-    "session": "d91f7c6ef37f5c08cac9"
+    "session": "453dcc11acb6c1263707"
   }
 };
 
