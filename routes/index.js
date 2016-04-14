@@ -15,7 +15,7 @@ var http = require('http');
 var _ = require('underscore');
 
 var timeForGame = 't' + Date.now();
-var token = 'f1112d3affaee056868a';
+var token = '7baf8e39e78dbc246ec8';
 var serverDomain = 'ks2-ru';
 
 var troops = {
@@ -49,10 +49,19 @@ var listPayload = {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [2487],
+      "listIds": [3943],
       "villageId": 536166362
     },
-    "session": "abecf3c64fa76bf295e0"
+    "session": "c03cae211382e67b7e87"
+  },
+  WahlbergRu3_15ka2: {
+    "controller": "troops",
+    "action": "startFarmListRaid",
+    "params": {
+      "listIds": [3943],
+      "villageId": 535904228
+    },
+    "session": "c03cae211382e67b7e87"
   },
   WahlbergRu3_start: {
     "controller": "troops",
@@ -61,35 +70,43 @@ var listPayload = {
       "listIds": [383],
       "villageId": 535936992
     },
-    "session": "abecf3c64fa76bf295e0"
+    "session": "c03cae211382e67b7e87"
   },
   RinRu2: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [3980],
+      "listIds": [3980, 4198],
       "villageId": 538230833
     },
-    "session": "f1112d3affaee056868a"
+    "session": "eaaf0b52318afbf190d6"
   },
   FirelanRu2_15ka: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4099],
+      "listIds": [4589],
       "villageId": 538165296
     },
-    "session": "906f47456c8736db3210"
+    "session": "7baf8e39e78dbc246ec8"
   },
   FirelanRu2: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4099],
+      "listIds": [4588],
       "villageId": 537870367
     },
-    "session": "906f47456c8736db3210"
-  }
+    "session": "7baf8e39e78dbc246ec8"
+  },
+  Serb: {
+    "controller":"troops",
+    "action":"startFarmListRaid",
+    "params":{
+      "listIds":[3997],
+      "villageId":536035298
+    },
+    "session":"834ac16106c46d3c30bc"}
 };
 
 var fixedTimeGenerator = function (seconds) {
@@ -289,12 +306,13 @@ var fixedTimeGenerator = function (seconds) {
 
               });
             }
+            oasis();
           });
       });
   };
 
 
-function autoFarmFinder(xCor, yCor){
+function autoFarmFinder(xCor, yCor, name){
   request
     .get({
       headers: {'content-type' : 'application/x-www-form-urlencoded'},
@@ -333,7 +351,6 @@ function autoFarmFinder(xCor, yCor){
               body:    JSON.stringify(payload)
             }, function(error, response, body) {
               var allVillages = JSON.parse(body);
-              //console.log(allVillages);
               var allGreyVillages = [];
               allVillages.cache.forEach(function(item, i, arr){
                 if (item.data.active == 0){
@@ -349,46 +366,79 @@ function autoFarmFinder(xCor, yCor){
                 return len;
               });
 
-              console.log(sortedAllGreyVillages.length);
+              console.log('Количество ' + sortedAllGreyVillages.length);
 
-              listIndex = 0;
-              listId = [4198, 4199, 4200, 4201, 4202, 4203];
+              var listLength = Math.ceil(sortedAllGreyVillages.length/100);
 
-              for (var i = 0; i < sortedAllGreyVillages.length; i++) {
-                var villageId = sortedAllGreyVillages[i].villageId;
-                if (i%100 == 0  && i!=0){
-                  listIndex++
-                }
 
-                //console.log(listIndex);
+              var listIndex = 0;
+              var listId = [];
 
-                var farmListPayload = {
+              var count = 0;
+
+              for (var i = 0; i < listLength; i++) {
+
+                var listObj = {
                   "controller":"farmList",
-                  "action":"moveEntry",
-                  "params":{
-                    "villageId":villageId,
-                    "newListId":listId[listIndex],
-                    "entryId":0
-                  },
-                  "session": token
+                  "action":"createList",
+                  "params":{"name":name + ' ' + i},
+                  "session":token
                 };
+
 
                 request
                 .post({
                   headers: {'content-type' : 'application/x-www-form-urlencoded'},
-                  url:     'http://'+serverDomain+'.travian.com/api/?c=farmList&a=moveEntry&'+timeForGame,
-                  body:    JSON.stringify(farmListPayload)
+                  url:     'http://'+serverDomain+'.travian.com/api/?c=farmList&a=createList&'+timeForGame,
+                  body:    JSON.stringify(listObj)
                 }, function(error, response, body) {
-                  //console.log(body);
-                })
+                    listId.push(JSON.parse(body).cache[0].data.cache[0].data.listId);
+                    count++;
 
-                //TODO: доделать таймаут
+                    if (listId.length == listLength){
+                      addToFarmList();
+                    }
+                });
 
               }
 
 
-              //console.log(allGreyVillages);
-              //console.log(allVillages.cache.length);
+
+              function addToFarmList(){
+                console.log(listId);
+                for (var i = 0; i < sortedAllGreyVillages.length; i++) {
+                  var villageId = sortedAllGreyVillages[i].villageId;
+
+                  if (i%100 == 0  && i!=0){
+                    listIndex++
+                  }
+
+                  //console.log(listIndex);
+
+                  var farmListPayload = {
+                    "controller":"farmList",
+                    "action":"moveEntry",
+                    "params":{
+                      "villageId":villageId,
+                      "newListId":listId[listIndex],
+                      "entryId":0
+                    },
+                    "session": token
+                  };
+
+                  request
+                  .post({
+                    headers: {'content-type' : 'application/x-www-form-urlencoded'},
+                    url:     'http://'+serverDomain+'.travian.com/api/?c=farmList&a=moveEntry&'+timeForGame,
+                    body:    JSON.stringify(farmListPayload)
+                  }, function(error, response, body) {
+                    //console.log(body);
+                  });
+
+                  //TODO: доделать таймаут
+
+                }
+              }
             });
           //console.log(toJson.response.alliances);
           //console.log(JSON.stringify(toJson.response.gameworld));
@@ -397,14 +447,12 @@ function autoFarmFinder(xCor, yCor){
     }
   )
 }
-//autoFarmFinder('49', '41');
 
-//autoFarmList(3600, 600, listPayload.WahlbergRu3_15ka, 'ks3-ru', false);
-//autoFarmList(3600, 600, listPayload.WahlbergRu3_start, 'ks3-ru', false);
-//autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', false);
-//autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', false);
-//autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', false);
-
+//autoFarmFinder('31', '30', 'Житуха лафа');
+//
+autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
+autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
+autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', true);
 
 //getAnimals();
 
