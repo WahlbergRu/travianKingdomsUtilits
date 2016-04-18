@@ -15,7 +15,7 @@ var http = require('http');
 var _ = require('underscore');
 
 var timeForGame = 't' + Date.now();
-var token = '7baf8e39e78dbc246ec8';
+var token = '91f925b6c726bca9ecc0';
 var serverDomain = 'ks2-ru';
 
 var troops = {
@@ -88,7 +88,7 @@ var listPayload = {
       "listIds": [4589],
       "villageId": 538165296
     },
-    "session": "7baf8e39e78dbc246ec8"
+    "session": "a6e46715cf6888058318"
   },
   FirelanRu2: {
     "controller": "troops",
@@ -97,7 +97,7 @@ var listPayload = {
       "listIds": [4588],
       "villageId": 537870367
     },
-    "session": "7baf8e39e78dbc246ec8"
+    "session": "a6e46715cf6888058318"
   },
   Serb: {
     "controller":"troops",
@@ -448,8 +448,8 @@ function autoFarmFinder(xCor, yCor, name){
   )
 }
 
-//autoFarmFinder('31', '30', 'Житуха лафа');
-//
+//autoFarmFinder('8', '11', 'палы');
+
 autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
 autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
 autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', true);
