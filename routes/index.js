@@ -15,7 +15,7 @@ var http = require('http');
 var _ = require('underscore');
 
 var timeForGame = 't' + Date.now();
-var token = '91f925b6c726bca9ecc0';
+var token = '396c132cb00a916e9e8a';
 var serverDomain = 'ks2-ru';
 
 var troops = {
@@ -45,32 +45,14 @@ var troops = {
   "session": token
 };
 var listPayload = {
-  WahlbergRu3_15ka: {
-    "controller": "troops",
-    "action": "startFarmListRaid",
-    "params": {
-      "listIds": [3943],
-      "villageId": 536166362
+  WahlbergRu2: {
+    "controller":"troops",
+    "action":"startFarmListRaid",
+    "params":{
+      "listIds":[4659,4660,4661],
+      "villageId":537346086
     },
-    "session": "c03cae211382e67b7e87"
-  },
-  WahlbergRu3_15ka2: {
-    "controller": "troops",
-    "action": "startFarmListRaid",
-    "params": {
-      "listIds": [3943],
-      "villageId": 535904228
-    },
-    "session": "c03cae211382e67b7e87"
-  },
-  WahlbergRu3_start: {
-    "controller": "troops",
-    "action": "startFarmListRaid",
-    "params": {
-      "listIds": [383],
-      "villageId": 535936992
-    },
-    "session": "c03cae211382e67b7e87"
+    "session":"59b90efaaac63ee8e55a"
   },
   RinRu2: {
     "controller": "troops",
@@ -79,25 +61,26 @@ var listPayload = {
       "listIds": [3980, 4198],
       "villageId": 538230833
     },
-    "session": "eaaf0b52318afbf190d6"
+    "session": "9dbc39f09374d4094410"
   },
   FirelanRu2_15ka: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4589],
+      "listIds": [4650, 4649],
       "villageId": 538165296
     },
-    "session": "a6e46715cf6888058318"
+    "session": "39c172be263320d985b3"
   },
+
   FirelanRu2: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4588],
+      "listIds": [4650, 4649],
       "villageId": 537870367
     },
-    "session": "a6e46715cf6888058318"
+    "session": "39c172be263320d985b3"
   },
   Serb: {
     "controller":"troops",
@@ -448,11 +431,12 @@ function autoFarmFinder(xCor, yCor, name){
   )
 }
 
-//autoFarmFinder('8', '11', 'палы');
+//autoFarmFinder('38', '14', 'Фармим на чуд');
 
 autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
 autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
 autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', true);
+autoFarmList(3600, 600, listPayload.WahlbergRu2, 'ks2-ru', true);
 
 //getAnimals();
 
