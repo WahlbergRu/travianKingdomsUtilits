@@ -13,10 +13,7 @@ var apiKey = {};
 var request = require('request');
 var http = require('http');
 var _ = require('underscore');
-
-var timeForGame = 't' + Date.now();
-var token = '396c132cb00a916e9e8a';
-var serverDomain = 'ks2-ru';
+var rp = require('request-promise');
 
 var troops = {
   "controller": "troops",
@@ -61,26 +58,26 @@ var listPayload = {
       "listIds": [3980, 4198],
       "villageId": 538230833
     },
-    "session": "9dbc39f09374d4094410"
+    "session": "d52d052c7f00d7dfc346"
   },
   FirelanRu2_15ka: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4650, 4649],
+      "listIds": [4758, 4759],
       "villageId": 538165296
     },
-    "session": "39c172be263320d985b3"
+    "session": "c9b63e02995600fa1fea"
   },
 
   FirelanRu2: {
     "controller": "troops",
     "action": "startFarmListRaid",
     "params": {
-      "listIds": [4650, 4649],
+      "listIds": [4760, 4761],
       "villageId": 537870367
     },
-    "session": "39c172be263320d985b3"
+    "session": "c9b63e02995600fa1fea"
   },
   Serb: {
     "controller":"troops",
@@ -103,9 +100,33 @@ var fixedTimeGenerator = function (seconds) {
     //Рандом число в пределах seconds секунд
     return parseInt(getRandomInt(-1000, 1000) * seconds);
   },
+  httpRequest = function (obj){
+    return rp({
+      headers: {'content-type': 'application/x-www-form-urlencoded'},
+      uri: 'http://' + serverDomain + '.travian.com/api/?c='+ obj.controller +'&a='+ obj.action +'&' + timeForGame,
+      body: JSON.stringify(obj),
+      json: true // Automatically parses the JSON string in the response
+    })
+  },
   //fixedTime - фиксированное время
   //randomTime - разброс
   autoFarmList = function (fixedTime, randomTime, listPayload, serverDomain, init) {
+
+    var lastDataFromList = {
+      "controller": "cache",
+      "action": "get",
+      "params": {
+        "names": []
+      },
+      "session": listPayload.session
+    };
+
+    for (var i = 0; i < listPayload.params.listIds.length; i++) {
+      var obj = "Collection:FarmListEntry:" + listPayload.params.listIds[i];
+      lastDataFromList.params.names.push(obj);
+    }
+
+    var percentLose = 0.75;
 
     var startFramListRaid = function () {
       request
@@ -120,7 +141,7 @@ var fixedTimeGenerator = function (seconds) {
     };
 
     var RecallFunction = function () {
-      now = new Date();
+      var now = new Date();
       var rand = fixedTimeGenerator(fixedTime) + randomTimeGenerator(randomTime);
       console.log('Время выхода ' + now.toString());
       var tempTime = now.valueOf() + rand;
@@ -136,11 +157,207 @@ var fixedTimeGenerator = function (seconds) {
 
       init = true;
 
-      now = 't' + now;
-      setTimeout(RecallFunction, rand);
+
+      setTimeout(checkList, rand);
+
     };
 
-    RecallFunction();
+    var checkList = function () {
+
+      function start(counter, countMax, timeout, clearTimer, func, obj) {
+
+        if (counter < countMax){
+
+          setTimeout(function () {
+            // Do Something Here
+            // Then recall the parent function to
+            // create a recursive loop.
+            // console.log(counter);
+
+            if (func){func(obj, counter);}
+
+            counter++;
+            start(counter, countMax, timeout, clearTimer, func, obj);
+
+          }, timeout);
+
+        } else{
+
+          console.log('Цикл проверки закончен');
+          RecallFunction();
+          clearTimeout(clearTimer);
+
+        }
+
+      }
+
+      function rowInListChanger(body, i, j){
+        var objFromCache = body.cache[j].data.cache[i],
+          lastReport = objFromCache.data.lastReport;
+
+        // console.log(j, i);
+
+        var newObjUnits = {
+          "controller": "farmList",
+          "action": "editTroops",
+          "params": {
+            "entryIds": [objFromCache.data.entryId],
+            "units": objFromCache.data.units
+          },
+          "session": listPayload.session
+        };
+
+        var romeTroops = {
+          1: 50,
+          2: 20,
+          3: 50,
+          4: 0,
+          5: 100,
+          6: 70
+        };
+
+        if (!lastReport) return false;
+        // console.log(lastReport);
+        if (lastReport.notificationType == '1') {
+          var sum = 0;
+
+          for (var unitKey in objFromCache.data.units) {
+            sum += parseInt(objFromCache.data.units[unitKey]);
+          }
+
+          //Если полный хабар то увеличиваем счётчик юнита
+          if (lastReport.capacity === lastReport.raidedResSum) {
+            for (var unitKey in objFromCache.data.units) {
+
+              if (objFromCache.data.units[unitKey] != 0) {
+                objFromCache.data.units[unitKey]++;
+              }
+
+              // console.log('Зелёный лог: увеличилось на 1 юнита');
+
+            }
+          }
+
+          //Если хабар не полный, то грузподъемность пополам
+          else if (lastReport.capacity / 2 > lastReport.raidedResSum || sum > 10) {
+            if (objFromCache.data.units[unitKey] != 0) {
+              objFromCache.data.units[unitKey]--;
+            }
+
+            // console.log('Зелёный лог: уменьшилось на 1 юнита');
+
+          }
+
+          else {
+            // console.log('Зелёный лог: оставить без изменений');
+            return false;
+          }
+
+        }
+        else if (lastReport.notificationType == '2') {
+          var capacity = 0;
+
+          for (var unitKey in objFromCache.data.units) {
+            // console.log(parseInt(objFromCache.data.units[unitKey]));
+            // console.log(romeTroops[unitKey]);
+            capacity += parseInt(objFromCache.data.units[unitKey]) * romeTroops[unitKey];
+          }
+
+          //Если потери будут меньше чем указанный процент, то кол-во юнитов увеличивается в два раза
+
+          // console.log('Capacity: ' + capacity);
+          // console.log('LastReport: ' + lastReport.capacity * percentLose);
+          if (capacity > lastReport.capacity * percentLose && capacity/4 < lastReport.capacity * percentLose) {
+            for (var unitKey in objFromCache.data.units) {
+              objFromCache.data.units[unitKey] *= 2
+            }
+            // console.log('Жёлтый лог: отправлен запрос');
+          } else {
+
+            for (var unitKey in objFromCache.data.units) {
+              sum += parseInt(objFromCache.data.units[unitKey]);
+              objFromCache.data.units[unitKey] = 0;
+            }
+
+            objFromCache.data.units[1] = 1;
+
+            // console.log('Жёлтый лог: убран');
+          }
+        }
+        else if (lastReport.notificationType == '3'){
+
+          var sum = 0;
+
+          for (var unitKey in objFromCache.data.units) {
+            sum += parseInt(objFromCache.data.units[unitKey]);
+            objFromCache.data.units[unitKey] = 0;
+          }
+
+          objFromCache.data.units[1] = 1;
+
+          if (sum == 1) {
+            // console.log('Красный лог: оставлен без изменения');
+            return false;
+          } else {
+            // console.log('Название деревни' + objFromCache.data.villageName);
+            // console.log('Красный лог: отправлен запрос');
+          }
+        }
+
+        // console.log(newObjUnits);
+
+        httpRequest(newObjUnits).then(
+          function (body) {
+            // console.log(body);
+          },
+          function (err) {
+            // console.log(err);
+          }
+        );
+      }
+
+      function listTimer(body, i){
+        var j = 0;
+        var diffI = 0;
+        var sum = body.cache[0].data.cache.length;
+
+        for (var k = 1; k < body.cache.length;k++ ) {
+          if (i >= sum){
+            diffI = sum;
+            sum += body.cache[k].data.cache.length;
+            j++;
+          }
+        }
+
+        // console.log(sum);
+
+        var rowInListChangerTimerObj = rowInListChanger(body, i-diffI , j);
+      }
+      // console.log(timerObj);
+
+      httpRequest(lastDataFromList)
+      .then(function (body) {
+        var counter = 0;
+        var countMax = 0;
+
+        for (var i = 0; i < body.cache.length; i++) {
+          countMax += body.cache[i].data.cache.length;
+        }
+
+        var listTimerObj = start(counter, countMax,  1000, listTimerObj, listTimer, body);
+
+
+      })
+      .catch(function (err) {
+        // console.log(err);
+        // POST failed...
+      });
+      
+    };
+
+    checkList();
+
+
   },
   attackRequest = function () {
     request
@@ -368,13 +585,13 @@ function autoFarmFinder(xCor, yCor, name){
                   "session":token
                 };
 
-
                 request
                 .post({
                   headers: {'content-type' : 'application/x-www-form-urlencoded'},
                   url:     'http://'+serverDomain+'.travian.com/api/?c=farmList&a=createList&'+timeForGame,
                   body:    JSON.stringify(listObj)
-                }, function(error, response, body) {
+                }, function(error, response, body)
+                {
                     listId.push(JSON.parse(body).cache[0].data.cache[0].data.listId);
                     count++;
 
@@ -384,8 +601,6 @@ function autoFarmFinder(xCor, yCor, name){
                 });
 
               }
-
-
 
               function addToFarmList(){
                 console.log(listId);
@@ -422,6 +637,7 @@ function autoFarmFinder(xCor, yCor, name){
 
                 }
               }
+
             });
           //console.log(toJson.response.alliances);
           //console.log(JSON.stringify(toJson.response.gameworld));
@@ -431,12 +647,18 @@ function autoFarmFinder(xCor, yCor, name){
   )
 }
 
-//autoFarmFinder('38', '14', 'Фармим на чуд');
+
+
+var timeForGame = 't' + Date.now();
+var token = '4c7c3f52925117163c02';
+var serverDomain = 'ks2-ru';
+
+// autoFarmFinder('49', '41', 'Мур, детка');
 
 autoFarmList(3600, 600, listPayload.RinRu2, 'ks2-ru', true);
-autoFarmList(3600, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
+autoFarmList(7200, 600, listPayload.FirelanRu2_15ka, 'ks2-ru', true);
 autoFarmList(3600, 600, listPayload.FirelanRu2, 'ks2-ru', true);
-autoFarmList(3600, 600, listPayload.WahlbergRu2, 'ks2-ru', true);
+// autoFarmList(3600, 600, listPayload.WahlbergRu2, 'ks2-ru', true);
 
 //getAnimals();
 

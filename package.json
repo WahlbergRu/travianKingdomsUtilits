@@ -25,6 +25,9 @@
     "jade": "^1.11.0",
     "jshint": "^2.5.6",
     "morgan": "^1.6.1",
+    "nanotimer": "^0.3.14",
+    "request": "^2.72.0",
+    "request-promise": "^3.0.0",
     "underscore": "^1.8.3"
   },
   "repository": {
